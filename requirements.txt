@@ -6,3 +6,4 @@ Pillow
 boto3
 pydantic>=2.0
 tqdm
+h5py
