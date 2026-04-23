@@ -12,6 +12,16 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Force unbuffered stdout for EC2 log-tailer visibility
+import os
+os.environ.setdefault("PYTHONUNBUFFERED", "1")
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except AttributeError:
+    pass
+
+
 from src.pipeline import TaskPipeline, TaskConfig
 
 
