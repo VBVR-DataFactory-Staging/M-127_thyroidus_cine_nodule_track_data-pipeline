@@ -1,14 +1,8 @@
-"""Pipeline configuration for M-127 Thyroid US cine — nodule tracking + size change.
+"""Pipeline configuration for M-127 — TN3K static thyroid ultrasound nodule segmentation.
 
-Distinct from:
-- M-67 (tn3k):  static thyroid nodule segmentation on single frames.
-- M-84 (ddti):  thyroid nodule classification / TI-RADS (single image).
-- M-124:        thyroid cine LESION LOCALIZATION (per-frame bbox, static task).
-
-M-127 emphasizes TEMPORAL TRACKING of the nodule across the full cine-clip
-and classifies the nodule size evolution from first to last frame as one of
-{stable, growing, shrinking}. Overlay adds per-frame bbox, size text and
-frame-to-frame motion arrows that M-124 lacks.
+Pivoted from the originally-scoped 'thyroidus_cine_nodule_track' (cine data
+unavailable on S3) to TN3K static segmentation, which mirrors M-067's task family
+on a different sampling of the same TN3K image pool.
 """
 from pathlib import Path
 from pydantic import Field
@@ -16,40 +10,17 @@ from core.pipeline import PipelineConfig
 
 
 class TaskConfig(PipelineConfig):
-    domain: str = Field(default="thyroidus_cine_nodule_track")
-
-    s3_bucket: str = Field(
-        default="med-vr-datasets",
-        description="S3 bucket containing the raw Stanford thyroid-cine data",
-    )
-    s3_prefix: str = Field(
-        default="M-127/ThyroidUScine/thyroidultrasoundcineclip/",
-        description="S3 key prefix for the dataset raw data (dataset.hdf5 + metadata.csv)",
-    )
-
-    fps: int = Field(default=6, description="Output video FPS")
-    max_frames: int = Field(
-        default=60,
-        description="Cap frames per clip (evenly sub-sample if longer)",
-    )
-    max_side: int = Field(
-        default=512,
-        description="Max side for output frames; preserves aspect ratio",
-    )
-
+    domain: str = Field(default="tn3k_thyroid_nodule_segmentation_m127")
+    s3_bucket: str = Field(default="med-vr-datasets")
+    # NOTE: the raw TN3K layout on S3 sits inside a folder name with a SPACE.
+    s3_prefix: str = Field(default="M-127/tn3k/Thyroid Dataset/tn3k/")
+    fps: int = Field(default=12)
     raw_dir: Path = Field(default=Path("raw"))
-
     task_prompt: str = Field(
         default=(
-            "Track the thyroid nodule across all frames of this ultrasound cine-clip. "
-            "The nodule is annotated on each frame by a red bounding box; its cross-sectional "
-            "area (pixel count) is printed in the top-left corner, and white arrows across "
-            "frames show the nodule's motion from frame to frame. Calculate the nodule's "
-            "size change from the FIRST to the LAST frame of the clip and CLASSIFY the "
-            "nodule as one of: STABLE (|delta| <= 10% of initial area), GROWING "
-            "(delta > +10%), or SHRINKING (delta < -10%). Report: (1) initial vs final "
-            "area in pixels, (2) percent change, (3) stable/growing/shrinking label, "
-            "(4) whether the nodule stays within the thyroid (no out-of-plane motion)."
+            "This thyroid ultrasound image. Segment the thyroid nodule with a "
+            "red binary mask on every frame. The nodule is a focal lesion within "
+            "the thyroid parenchyma."
         ),
-        description="The task instruction shown to the reasoning model.",
+        description="Task instruction.",
     )

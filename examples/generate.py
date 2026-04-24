@@ -1,47 +1,25 @@
-#!/usr/bin/env python3
-"""Dataset generation entry point for M-127 (thyroidus_cine_nodule_track).
-
-Usage:
-    python examples/generate.py
-    python examples/generate.py --num-samples 5
-    python examples/generate.py --output data/my_output
-"""
+"""Local example generator."""
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Force unbuffered stdout for EC2 log-tailer visibility
-import os
-os.environ.setdefault("PYTHONUNBUFFERED", "1")
-try:
-    sys.stdout.reconfigure(line_buffering=True)
-    sys.stderr.reconfigure(line_buffering=True)
-except AttributeError:
-    pass
-
-
-from src.pipeline import TaskPipeline, TaskConfig
+from src.pipeline.config import TaskConfig
+from src.pipeline.pipeline import TaskPipeline
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate M-127 (thyroid US cine nodule-tracking) dataset"
-    )
-    parser.add_argument("--num-samples", type=int, default=None,
-                        help="Max clips to process (default = all 192).")
-    parser.add_argument("--output", type=str, default="data/questions")
-    args = parser.parse_args()
+    p = argparse.ArgumentParser()
+    p.add_argument("--num-samples", type=int, default=2)
+    p.add_argument("--output", type=str, default="data/questions")
+    args = p.parse_args()
 
-    print("Generating M-127 (thyroidus_cine_nodule_track) dataset...")
-    config = TaskConfig(
-        num_samples=args.num_samples,
-        output_dir=Path(args.output),
-    )
-    pipeline = TaskPipeline(config)
-    pipeline.run()
-    print("Done.")
+    cfg = TaskConfig(num_samples=args.num_samples, output_dir=Path(args.output))
+    pipe = TaskPipeline(cfg)
+    print(f"[M-127_thyroidus_cine_nodule_track] Generating {args.num_samples} sample(s) -> {args.output}")
+    samples = pipe.run()
+    print(f"[M-127_thyroidus_cine_nodule_track] Wrote {len(samples)} samples")
 
 
 if __name__ == "__main__":

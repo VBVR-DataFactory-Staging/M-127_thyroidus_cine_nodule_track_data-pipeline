@@ -332,7 +332,7 @@ class BasePipeline(ABC):
         for idx, raw in enumerate(self.download()):
             sample = self.process_sample(raw, idx)
             if sample is None:
-                print(f"  Skipped sample {idx}", flush=True)
+                print(f"  Skipped sample {idx}")
                 continue
 
             writer.write_sample(sample)
@@ -340,12 +340,12 @@ class BasePipeline(ABC):
             processed += 1
 
             if processed % 10 == 0:
-                print(f"  Processed {processed} samples...", flush=True)
+                print(f"  Processed {processed} samples...")
 
         print(
             f"Done! Processed {processed} samples "
             f"-> {self.config.output_dir}/{self.config.domain}_task/"
-        , flush=True)
+        )
         return samples
 
 
